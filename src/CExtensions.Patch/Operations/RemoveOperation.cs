@@ -40,35 +40,71 @@ namespace CExtensions.Patch.Operations
 
             if (parent != null)
             {
-                if (parent.HasValues)
+                if (parent is JArray)
                 {
-                   if(parent.Count() == 1)
+                    //check if the array contains empty objects
+                    var next = parent.First;
+
+                    while (next != null)
                     {
-                       if(!parent.First.HasValues)
+                        if (next is JObject && !next.HasValues)
                         {
-                            parent.Remove();
+                            next.Remove();
                         }
-                    }   
-                   if(parent is JArray)
+                        next = next.Next;
+                    }
+                    if (!parent.HasValues)
                     {
-                        foreach (var item in parent)
-                        {
-                           if(!item.HasValues)
-                            {
-                                item.Remove();
-                            }
-                        }
-                        if(!parent.HasValues)
-                        {
-                            parent.Remove();
-                        }
-                    }      
+                        parent.Parent.Remove();
+                    }
                 }
-                else
+                else if (!parent.HasValues)
                 {
                     parent.Remove();
                 }
+                else
+                {
+                    if (parent.Count() == 1)
+                    {
+                        if (!parent.First.HasValues)
+                        {
+                            parent.Remove();
+                        }
+                    }
+                }
             }
+
+            //if (parent != null)
+            //{
+            //    if (parent.HasValues)
+            //    {
+            //       if(parent.Count() == 1)
+            //        {
+            //           if(!parent.First.HasValues)
+            //            {
+            //                parent.Remove();
+            //            }
+            //        }   
+            //       if(parent is JArray)
+            //        {
+            //            foreach (var item in parent)
+            //            {
+            //               if(!item.HasValues)
+            //                {
+            //                    item.Remove();
+            //                }
+            //            }
+            //            if(!parent.HasValues)
+            //            {
+            //                parent.Remove();
+            //            }
+            //        }      
+            //    }
+            //    else
+            //    {
+            //        parent.Remove();
+            //    }
+            //}
         }
     }
 }

@@ -95,7 +95,7 @@ namespace CExtensions.Patch
                                 {
                                     'prop': 'qux',
                                     'obj': {'prop1':'1','prop2':'2'},
-                                    'arr' : [{'prop1':'1','prop2':'2'},{'prop1':'1','prop2':'2'}]
+                                    'arr' : [{'prop1':'1','prop2':'2'},{'prop1':'3','prop2':'4'}]
                                  }");
 
             var doc = JsonPatchDocument.Create().Move("obj.prop1", "objnew");
@@ -103,7 +103,7 @@ namespace CExtensions.Patch
             await doc.ApplyTo(originalDocument, true);
 
             string result = SerializeObject(originalDocument);
-            result.ShouldBe("{'objnew':'1'");
+            result.ShouldBe("{'objnew':'1'}");
 
 
 

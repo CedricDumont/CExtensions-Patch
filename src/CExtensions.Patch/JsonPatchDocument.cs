@@ -25,7 +25,10 @@ namespace CExtensions.Patch
 
             var operationList = Operation.FromTemplateList(list);
 
-            return new JsonPatchDocument(operationList);
+            var jsonPatcDoc =  new JsonPatchDocument(operationList);
+            jsonPatcDoc.DirtyProperties =  new List<string>();
+
+            return jsonPatcDoc;
 
         }
 
@@ -101,7 +104,7 @@ namespace CExtensions.Patch
 
             if (removeUntouched)
             {
-                var toBeRemoved = (from original in OriginalValues.Keys where !DirtyProperties.Contains(original) select original).ToList();
+                var toBeRemoved = (from original in OriginalValues.Keys where !DirtyProperties.Contains(original) orderby original descending select original ).ToList();
 
                 foreach (var path in toBeRemoved)
                 {
@@ -111,10 +114,6 @@ namespace CExtensions.Patch
 
           
             }
-
-
-
-
 
         }
 

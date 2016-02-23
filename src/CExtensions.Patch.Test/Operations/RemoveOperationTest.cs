@@ -37,7 +37,7 @@ namespace CExtensions.Patch
             Operation operation = new RemoveOperation() { Target = _Object, Path = "$.baz.age" };
             operation.Execute();
             string result = SerializeObject(_Object);
-            result.ShouldBe(@"{'baz':{},'foo':'bar'}");
+            result.ShouldBe(@"{'foo':'bar'}");
         }
 
         [Fact]
@@ -107,5 +107,30 @@ namespace CExtensions.Patch
             string result = SerializeObject(_Object);
             result.ShouldBe(@"{}");
         }
+
+        [Fact]
+        public void RemoveArrayWithMultipleEntryIfOneEntryEmpty_ShouldRemoveMember()
+        {
+            dynamic _Object = JObject.Parse(@"
+                                { 'baz' : [{'prop1':'1','prop2':'2'},{'prop1':'1','prop2':'2'}]}"
+                );
+
+            Operation operation = new RemoveOperation() { Target = _Object, Path = "$.baz[0].prop1" };
+            operation.Execute();
+            operation = new RemoveOperation() { Target = _Object, Path = "$.baz[0].prop2" };
+            operation.Execute();
+            string result = SerializeObject(_Object);
+            result.ShouldBe(@"{'baz':[{'prop1':'1','prop2':'2'}]}");
+
+            //second part remove the array if empty
+            operation = new RemoveOperation() { Target = _Object, Path = "$.baz[0].prop1" };
+            operation.Execute();
+            operation = new RemoveOperation() { Target = _Object, Path = "$.baz[0].prop2" };
+            operation.Execute();
+            result = SerializeObject(_Object);
+            result.ShouldBe(@"{}");
+        }
+
+        
     }
 }
