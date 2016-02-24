@@ -182,7 +182,7 @@ namespace CExtensions.Patch
                                     }");
 
 
-            var actual = await JsonPatchDocument.FromJson(patch).Optimized().ApplyTo(originalDocument);
+            var actual = await JsonPatchDocument.FromJson(patch).ApplyTo(originalDocument);
 
             TrimAllWhitespace(actual).ShouldBe(expected);
 
