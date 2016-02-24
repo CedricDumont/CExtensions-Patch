@@ -10,19 +10,24 @@ namespace CExtensions.Patch
 {
     public static class Extensions
     {
-        //public static Object Patch(this Object target, JsonPatchDocument patchDocument)
-        //{
-        //    var temp = JObject.FromObject(target);
-        //    patchDocument.ApplyTo(temp);
-        //    return temp;
-        //}
+        public static JsonPatchDocument WithRemoveUntouchedProperties(this JsonPatchDocument jsonPatchDoc)
+        {
+            jsonPatchDoc.Options.RemoveUntouched = true;
+            return jsonPatchDoc;
+        }
 
-        //public static string Patch(this String jsonObject, JsonPatchDocument patchDocument)
-        //{
-        //    var target = JObject.Parse(jsonObject);
-        //    patchDocument.ApplyTo(target);
-        //    return JsonConvert.SerializeObject(target);
-        //}
+        public static JsonPatchDocument WithErrorRecoveryDisabled(this JsonPatchDocument jsonPatchDoc)
+        {
+            jsonPatchDoc.Options.RecoverIfError = true;
+            return jsonPatchDoc;
+        }
+
+        public static JsonPatchDocument Optimized(this JsonPatchDocument jsonPatchDoc)
+        {
+            jsonPatchDoc.Options.RecoverIfError = false;
+            jsonPatchDoc.Options.RemoveUntouched = false;
+            return jsonPatchDoc;
+        }
 
     }
 }

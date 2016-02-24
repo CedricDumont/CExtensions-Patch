@@ -11,13 +11,17 @@ namespace CExtensions.Patch
 {
     public class JsonPatchDocument : List<Operation>
     {
-        private JsonPatchDocument() : base() {
-
+        private JsonPatchDocument(JsonPatchOptions options = null) 
+        {
             DirtyProperties = new List<string>();
-
+            Options = options ?? JsonPatchOptions.Default;
         }
 
-        private JsonPatchDocument(IEnumerable<Operation> operationList) : base(operationList) { }
+        private JsonPatchDocument(IEnumerable<Operation> operationList, JsonPatchOptions options = null) : base(operationList)
+        {
+            DirtyProperties = new List<string>();
+            Options = options ?? JsonPatchOptions.Default;
+        }
 
         public static JsonPatchDocument FromJson(String jsonString)
         {
@@ -26,20 +30,22 @@ namespace CExtensions.Patch
             var operationList = Operation.FromTemplateList(list);
 
             var jsonPatcDoc =  new JsonPatchDocument(operationList);
-            jsonPatcDoc.DirtyProperties =  new List<string>();
 
             return jsonPatcDoc;
-
         }
+
 
         public static JsonPatchDocument Create()
         {
             return new JsonPatchDocument();
         }
 
-        public Boolean IsInError { get; private set; }
+        public JsonPatchOptions Options
+        {
+            get; internal set;
+        }
 
-        public dynamic Source { get; private set; }
+        public Boolean IsInError { get; private set; }
 
         private List<String> DirtyProperties { get; set; }
 
@@ -77,14 +83,30 @@ namespace CExtensions.Patch
 
         public IDictionary<string, Object> OriginalValues { get; set; }
 
-
-        public async Task ApplyTo(dynamic target, Boolean removeUntouched = false)
+        public string _originalDocument;
+        public String OriginalDocument
         {
-            string copy = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(target));
+            get
+            {
+                if(!Options.TraceOriginalDocument)
+                {
+                    throw new Exception("Enable TraceOriginalDocument using options.");
+                }
+                return _originalDocument;
+            }
+            private set
+            {
+                _originalDocument = value;
+            }
+        } 
 
-            Source = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject(copy));
 
-            OriginalValues = Flatten(copy);
+        public async Task ApplyTo(dynamic target)
+        {
+            if (Options.TraceOriginalDocument)
+            {
+                OriginalDocument = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(target));
+            }
 
             foreach (var operation in this)
             {
@@ -94,16 +116,18 @@ namespace CExtensions.Patch
 
                 DirtyProperties.AddRange(operation.DirtyTokens);
 
-                if (operation.IsInError)
+                if (operation.IsInError && Options.RecoverIfError)
                 {
                     IsInError = true;
-                    target = Source;
+                    target = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject(OriginalDocument));
                     break;
                 }
             }
 
-            if (removeUntouched)
+            if (Options.RemoveUntouched)
             {
+                OriginalValues = Flatten(OriginalDocument);
+
                 var toBeRemoved = (from original in OriginalValues.Keys where !DirtyProperties.Contains(original) orderby original descending select original ).ToList();
 
                 foreach (var path in toBeRemoved)
@@ -111,10 +135,7 @@ namespace CExtensions.Patch
                     RemoveOperation op = new RemoveOperation() { Target = target,  Path = path };
                     op.Execute();
                 }
-
-          
             }
-
         }
 
         public JsonPatchDocument Add(String path, Object value)

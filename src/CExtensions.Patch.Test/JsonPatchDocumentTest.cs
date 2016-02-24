@@ -98,19 +98,12 @@ namespace CExtensions.Patch
                                     'arr' : [{'prop1':'1','prop2':'2'},{'prop1':'3','prop2':'4'}]
                                  }");
 
-            var doc = JsonPatchDocument.Create().Move("obj.prop1", "objnew");
+            var doc = JsonPatchDocument.Create().WithRemoveUntouchedProperties().Move("obj.prop1", "objnew");
 
-            await doc.ApplyTo(originalDocument, true);
+            await doc.ApplyTo(originalDocument);
 
             string result = SerializeObject(originalDocument);
             result.ShouldBe("{'objnew':'1'}");
-
-
-
-
-
-
-
         }
 
         [Fact]
