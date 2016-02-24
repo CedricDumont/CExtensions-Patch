@@ -66,6 +66,35 @@ namespace CExtensions.Patch
         }
 
         [Fact]
+        public async Task ShouldApplyPatch_2()
+        {
+            var originalDocument = JObject.Parse(@"
+                                {
+                                    'bar': 'qux',
+                                    'baz': {'prop1':'1','prop2':'2'},
+                                    'foo' : [{'prop1':'1','prop2':'2'},{'prop1':'3','prop2':'4'}]
+                                 }");
+
+            string jsonDocument = (@"
+                                [
+                                    { 'op': 'move', 'from': '$.foo', 'path': 'zoo' },
+                                    { 'op': 'remove', 'path': '$.zoo[0]' },
+                                    { 'op': 'move', 'from':'$.bar','path': '$.bal' },
+                                    { 'op': 'add', 'path': '$.loo[0].newprop', 'value': 'loolipop' },
+                                    { 'op': 'add', 'path': '$.tic.tac', 'value': '100ms' },
+                                    { 'op': 'remove', 'path': '$.baz.prop1' },
+                                ]"
+                                );
+            var doc = JsonPatchDocument.FromJson(jsonDocument).Optimized();
+
+            await doc.ApplyTo(originalDocument);
+
+            string result = SerializeObject(originalDocument);
+            result.ShouldBe("{'baz':{'prop2':'2'},'zoo':[{'prop1':'3','prop2':'4'}],'bal':'qux','loo':[{'newprop':'loolipop'}],'tic':{'tac':'100ms'}}");
+
+        }
+
+        [Fact]
         public async Task ShouldBuildPatch()
         {
             dynamic originalDocument = JObject.Parse(@"
