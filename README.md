@@ -5,6 +5,7 @@ just a json patch .net library (in progress)
 #### Usage example with Json as String
 
 
+            //start from this json document
             var originalDocument = (@"
                                 {
                                     'name':{'last_Name': 'Dumont', 'first_Name': 'Cedric'},
@@ -18,6 +19,7 @@ just a json patch .net library (in progress)
                                     'office_adress_City':'Hell',
                                  }");
 
+            // using this patch
             string patch = (@"
                                 [
                                     { 'op': 'move', 'from': 'name.last_Name', 'path': 'familyName' },
@@ -36,9 +38,10 @@ just a json patch .net library (in progress)
                                 );
 
            
+             // by calling this 
              var result = await JsonPatchDocument.FromJson(patch).ApplyTo(originalDocument);
             
-             Result will be :
+             // Result will be :
                                 "{  
                                        'familyName':'Dumont',
                                        'givenName':'Cedric',
