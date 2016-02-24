@@ -81,6 +81,17 @@ namespace CExtensions.Patch
         }
 
         [Fact]
+        public void ShouldAddPropertyAtObjectInIndexContainedInArray()
+        {
+            dynamic obj = JObject.Parse(@"{'baz': [{'name': 'foo'},{'name': 'bar'}]}");
+
+            Operation operation = new AddOperation() { Target = obj, Path = "$.baz[1].lastName", Value = "myLastName" };
+            operation.Execute();
+            string result = SerializeObject(obj);
+            result.ShouldBe(@"{'baz':[{'name':'foo'},{'name':'bar','lastName':'myLastName'}]}");
+        }
+
+        [Fact]
         public void ShouldInsertValueAtIndexNotContainedInArray()
         {
             dynamic obj = JObject.Parse(@"{'baz': [{'name': 'foo'},{'name': 'bar'}]}");

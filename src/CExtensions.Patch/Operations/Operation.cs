@@ -174,8 +174,10 @@ namespace CExtensions.Patch.Operations
                         }
                         else
                         {
-                            JToken currentPart = jpart.SelectToken(part);
-                            currentPart.AddBeforeSelf(new JObject());
+                            if (path.EndsWith("]")) {
+                                JToken currentPart = jpart.SelectToken(part);
+                                currentPart.AddBeforeSelf(new JObject());
+                            }
                         }
                     }
                 }

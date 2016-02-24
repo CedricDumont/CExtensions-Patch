@@ -105,13 +105,13 @@ namespace CExtensions.Patch
 
             string patch = (@"
                                 [
-                                    { 'op': 'move', 'from': 'firstProp', 'path': 'address[0].sameProp' },
-                                    { 'op': 'move', 'from': 'secondProp', 'path': 'address[1].sameProp' },
+                                    { 'op': 'move', 'from': 'firstProp', 'path': 'arr[0].sameProp' },
+                                    { 'op': 'move', 'from': 'secondProp', 'path': 'arr[1].sameProp' },
                                 ]"
                                 );
 
             string expected = TrimAllWhitespace(@"{  
-                                       'address':[
+                                       'arr':[
                                           {  
                                              'sameProp':'firstValue'
                                           },
@@ -130,7 +130,7 @@ namespace CExtensions.Patch
         [Fact]
         public async Task ShouldApplyPatch_ConcreteSample()
         {
-            var originalDocument = JObject.Parse(@"
+            var originalDocument = TrimAllWhitespace(@"
                                 {
                                     'name':{'last_Name': 'Dumont', 'first_Name': 'Cedric'},
                                     'personal_adress_street':'heavenstreet',
@@ -143,7 +143,7 @@ namespace CExtensions.Patch
                                     'office_adress_City':'Hell',
                                  }");
 
-            string jsonDocument = (@"
+            string patch = (@"
                                 [
                                     { 'op': 'move', 'from': 'name.last_Name', 'path': 'familyName' },
                                     { 'op': 'move', 'from': 'name.first_Name', 'path': 'givenName' },
@@ -160,14 +160,31 @@ namespace CExtensions.Patch
                                 ]"
                                 );
 
-            var doc = JsonPatchDocument.FromJson(jsonDocument).Optimized();
+            string expected = TrimAllWhitespace(@"{  
+                                       'familyName':'Dumont',
+                                       'givenName':'Cedric',
+                                       'address':[
+                                          {
+                                             'streetAddress':'heavenstreet',
+                                             'postOfficeBoxNumber':'10',
+                                             'postalCode':'4444',
+                                             'addressLocality':'Paradise',
+                                             'contactType':'private'
+                                          },
+                                          {
+                                             'streetAddress':'badStreet',
+                                             'postOfficeBoxNumber':'666',
+                                             'postalCode':'5555',
+                                             'addressLocality':'Hell',
+                                             'contactType':'office'
+                                          }
+                                       ]
+                                    }");
 
-            await doc.ApplyTo(originalDocument);
 
-            string actual = SerializeObject(originalDocument);
-            string expected = SerializeObjectAndTrimWhiteSpace(originalDocument);
+            var actual = await JsonPatchDocument.FromJson(patch).Optimized().ApplyTo(originalDocument);
 
-            actual.ShouldBe(expected);
+            TrimAllWhitespace(actual).ShouldBe(expected);
 
         }
 
