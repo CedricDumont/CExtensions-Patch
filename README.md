@@ -4,7 +4,7 @@ just a json patch .net library (in progress)
 
 quick sample
 
-[code]
+
               public async Task ShouldApplyPatch()
               {
                   dynamic originalDocument = JObject.Parse(@"
@@ -30,4 +30,3 @@ quick sample
       
               }
 
-[/code]
