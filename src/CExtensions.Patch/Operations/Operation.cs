@@ -161,6 +161,24 @@ namespace CExtensions.Patch.Operations
                         ((JContainer)jpart).Add(new JProperty(selector, new JObject()));
                     }
                 }
+                else
+                {
+                    if (part.EndsWith("]"))
+                    {
+                        if ((JToken)jpart.SelectToken(part) == null)
+                        {
+                            //add an empty object on the existing
+                            //todo determine the index
+                            JArray currentArray = (JArray)jpart.SelectToken(selector);
+                            currentArray.Add(new JObject());
+                        }
+                        else
+                        {
+                            JToken currentPart = jpart.SelectToken(part);
+                            currentPart.AddBeforeSelf(new JObject());
+                        }
+                    }
+                }
 
                 jpart = (JToken)jpart.SelectToken(part);
 
@@ -200,7 +218,8 @@ namespace CExtensions.Patch.Operations
                     ((JArray)jpart).Add(jval);
                 }
                 else {
-                    jpart.AddBeforeSelf(jval);
+                    jpart.Replace(jval);
+                    //jpart.AddBeforeSelf(jval);
                 }
             }
             else {

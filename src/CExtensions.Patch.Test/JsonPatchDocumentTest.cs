@@ -95,6 +95,83 @@ namespace CExtensions.Patch
         }
 
         [Fact]
+        public async Task ShouldApplyPatch_andConvertToArray()
+        {
+            var originalDocument = TrimAllWhitespace(@"
+                                {
+                                    'firstProp':'firstValue',
+                                    'secondProp':'secondValue',
+                                 }");
+
+            string patch = (@"
+                                [
+                                    { 'op': 'move', 'from': 'firstProp', 'path': 'address[0].sameProp' },
+                                    { 'op': 'move', 'from': 'secondProp', 'path': 'address[1].sameProp' },
+                                ]"
+                                );
+
+            string expected = TrimAllWhitespace(@"{  
+                                       'address':[
+                                          {  
+                                             'sameProp':'firstValue'
+                                          },
+                                          {  
+                                             'sameProp':'secondValue'
+                                          }
+                                       ]
+                                    }");
+
+
+            var actual = await JsonPatchDocument.FromJson(patch).Optimized().ApplyTo(originalDocument);
+
+            TrimAllWhitespace(actual).ShouldBe(expected);
+        }
+
+        [Fact]
+        public async Task ShouldApplyPatch_ConcreteSample()
+        {
+            var originalDocument = JObject.Parse(@"
+                                {
+                                    'name':{'last_Name': 'Dumont', 'first_Name': 'Cedric'},
+                                    'personal_adress_street':'heavenstreet',
+                                    'personal_adress_nr':'10',
+                                    'personal_adress_postCode':'4444',
+                                    'personal_adress_City':'Paradise',
+                                    'office_adress_street':'badStreet',
+                                    'office_adress_nr':'666',
+                                    'office_adress_postCode':'5555',
+                                    'office_adress_City':'Hell',
+                                 }");
+
+            string jsonDocument = (@"
+                                [
+                                    { 'op': 'move', 'from': 'name.last_Name', 'path': 'familyName' },
+                                    { 'op': 'move', 'from': 'name.first_Name', 'path': 'givenName' },
+                                    { 'op': 'move', 'from': 'personal_adress_street', 'path': 'address[0].streetAddress' },
+                                    { 'op': 'move', 'from': 'personal_adress_nr', 'path': 'address[0].postOfficeBoxNumber' },
+                                    { 'op': 'move', 'from': 'personal_adress_postCode', 'path': 'address[0].postalCode' },
+                                    { 'op': 'move', 'from': 'personal_adress_City', 'path': 'address[0].addressLocality' },
+                                    { 'op': 'add', 'path': 'address[0].contactType','value':'private' },
+                                    { 'op': 'move', 'from': 'office_adress_street', 'path': 'address[1].streetAddress' },
+                                    { 'op': 'move', 'from': 'office_adress_nr', 'path': 'address[1].postOfficeBoxNumber' },
+                                    { 'op': 'move', 'from': 'office_adress_postCode', 'path': 'address[1].postalCode' },
+                                    { 'op': 'move', 'from': 'office_adress_City', 'path': 'address[1].addressLocality' },
+                                    { 'op': 'add', 'path': 'address[1].contactType','value':'office' }                                   
+                                ]"
+                                );
+
+            var doc = JsonPatchDocument.FromJson(jsonDocument).Optimized();
+
+            await doc.ApplyTo(originalDocument);
+
+            string actual = SerializeObject(originalDocument);
+            string expected = SerializeObjectAndTrimWhiteSpace(originalDocument);
+
+            actual.ShouldBe(expected);
+
+        }
+
+        [Fact]
         public async Task ShouldBuildPatch()
         {
             dynamic originalDocument = JObject.Parse(@"

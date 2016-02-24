@@ -100,8 +100,14 @@ namespace CExtensions.Patch
             }
         } 
 
+        public async Task<String> ApplyTo(String json)
+        {
+            var result = await ApplyTo(JObject.Parse(json));
 
-        public async Task ApplyTo(dynamic target)
+            return JsonConvert.SerializeObject(result);
+        }
+
+        public async Task<Object> ApplyTo(dynamic target)
         {
             if (Options.TraceOriginalDocument)
             {
@@ -136,6 +142,8 @@ namespace CExtensions.Patch
                     op.Execute();
                 }
             }
+
+            return target;
         }
 
         public JsonPatchDocument Add(String path, Object value)
